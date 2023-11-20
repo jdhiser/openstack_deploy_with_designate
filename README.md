@@ -1,6 +1,8 @@
 # openstack_deploy_with_designate
 
-Scripts used to deploy Openstack Antelope via Juju on the mega-techx1 cluster.
+Scripts used to deploy Openstack Antelope via Juju with designate to provide DNS services on the mega-techx1 cluster.
+
+I'm documenting this because I could find no serious examples of how to deploy designate where all integrations and configuration options needed to make it work were actually listed.  Just vague docs saying "juju deploy memcached".
 
 
 ## Step 1:
@@ -12,7 +14,7 @@ For mtx1, the openstack yaml files are included in `juju_init`.  You may need to
 Of note, there are designate-specific settings in some of the yaml files:
 
 ```
-netuon.yaml:
+neutron.yaml:
   enable-ml2-dns: true
   enable-ml2-port-security: true
   dns-domain: mtx1.os.
