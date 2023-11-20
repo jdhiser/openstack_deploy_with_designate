@@ -1,0 +1,2 @@
+memcached:
+    allow-ufw-ip6-softfail: true

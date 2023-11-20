@@ -1,0 +1,6 @@
+clouds:
+  maas-one:
+    type: maas
+    auth-types: [oauth1]
+    endpoint: http://10.246.112.3:5240/MAAS
+

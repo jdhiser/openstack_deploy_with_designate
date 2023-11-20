@@ -1,0 +1,6 @@
+credentials:
+  maas-one:
+    admin:
+      auth-type: oauth1
+      maas-oauth: 2ZfPsRkAGXqL7Ewc4c:6yEfHZKLrh6TgaJ6HC:HE3pGVGFsQNGmK9gPEfzSgfVzY8q3E7m
+

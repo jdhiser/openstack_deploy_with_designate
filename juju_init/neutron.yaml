@@ -1,0 +1,11 @@
+ovn-chassis:
+  bridge-interface-mappings: br-ex:ens1f0
+  ovn-bridge-mappings: physnet1:br-ex
+neutron-api:
+  neutron-security-groups: true
+  flat-network-providers: physnet1
+  enable-ml2-dns: true
+  enable-ml2-port-security: true
+  dns-domain: mtx1.os.
+  reverse-dns-lookup: true
+
