@@ -1,0 +1,7 @@
+{
+    "create_floatingip:floating_ip_address": "rule:regular_user",
+    "create_port": "rule:regular_user",
+    "create_port:fixed_ips": "rule:regular_user",
+    "create_port:fixed_ips:ip_address": "rule:regular_user",
+    "create_port:fixed_ips:subnet_id": "rule:regular_user"
+}

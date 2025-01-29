@@ -1,0 +1,53 @@
+description: Charmed Kubernetes overlay to add native OpenStack support.
+applications:
+
+
+  kubernetes-control-plane:
+    options:
+      allow-privileged: "true"
+    constraints: "container=lxd"
+    to: "5/lxd/0"
+  openstack-integrator:
+    charm: openstack-integrator
+    num_units: 1
+    trust: true
+    constraints: "container=lxd"
+    to: "6/lxd/0"
+  openstack-cloud-controller:
+    charm: openstack-cloud-controller
+    constraints: "container=lxd"
+    to: "7/lxd/0"
+  cinder-csi:
+    charm: cinder-csi
+    constraints: "container=lxd"
+    to: "8/lxd/0"
+  etcd:
+    constraints: "container=lxd"
+    to: "9/lxd/0"
+  kubernetes-worker:
+    constraints: "container=lxd"
+    to: "10/lxd/0"
+  calico:
+    constraints: "container=lxd"
+    to: "11/lxd/0"
+  flannel:
+    constraints: "container=lxd"
+    to: "12/lxd/0"
+  containerd:
+    constraints: "container=lxd"
+    to: "13/lxd/0"
+  easyrsa:
+    constraints: "container=lxd"
+    to: "14/lxd/0"
+  kubeapi-load-balancer:
+    constraints: "container=lxd"
+    to: "15/lxd/0"
+relations:
+  - [openstack-cloud-controller:certificates,            easyrsa:client]
+  - [openstack-cloud-controller:kube-control,            kubernetes-control-plane:kube-control]
+  - [openstack-cloud-controller:external-cloud-provider, kubernetes-control-plane:external-cloud-provider]
+  - [openstack-cloud-controller:openstack,               openstack-integrator:clients]
+  - [easyrsa:client,                                     cinder-csi:certificates]
+  - [kubernetes-control-plane:kube-control,              cinder-csi:kube-control]
+  - [openstack-integrator:clients,                       cinder-csi:openstack]
+

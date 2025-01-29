@@ -3,10 +3,18 @@
 main()
 {
 
+        if [ ! -e ~/cloud-images/jammy-amd64.img ]; then
+                wget http://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img -O ~/cloud-images/jammy-amd64.img
+        fi
+
+        if [ ! -e ~/cloud-images/cirros-0.6.2-x86_64-disk.img ]; then
+                wget https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img -O ~/cloud-images/cirros-0.6.2-x86_64-disk.img
+        fi
+
 	source ~/openstack-bundles/stable/openstack-base/openrc
 	openstack image create --public --container-format bare --disk-format qcow2 --file ~/cloud-images/jammy-amd64.img jammy-amd64
 	openstack image create --public --container-format bare --disk-format qcow2 --file ~/cloud-images/cirros-0.6.2-x86_64-disk.img cirros-amd64
-	openstack flavor create --ram 2048 --disk 20 --ephemeral 20 m1.small
+	openstack flavor create --ram 2048 --disk 20 --vcpus 1 --ephemeral 0 m1.small
 	openstack network create --external --share --provider-network-type flat --provider-physical-network physnet1 ext_net
 	# OS recommendation
 	# openstack subnet create --network ext_net --no-dhcp --gateway 10.246.112.3 --subnet-range 10.246.112.0/21 --allocation-pool start=10.246.114.0,end=10.246.115.255 ext_subnet

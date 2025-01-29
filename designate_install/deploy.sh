@@ -13,13 +13,13 @@ juju relate designate rabbitmq-server
 juju relate designate neutron-api
 juju relate designate vault
 
-
-juju relate designate mysql-innodb-cluster
+# No, use a mysql-router, as shown below.
+#juju relate designate mysql-innodb-cluster
 
 # trying this to link designate to already deployed mysql.
 juju deploy mysql-router designate-mysql-router  --channel 8.0/stable
 juju relate designate:shared-db designate-mysql-router:shared-db
-juju relate  designate-mysql-router mysql-innodb-cluster
+juju relate designate-mysql-router mysql-innodb-cluster
 
 
 

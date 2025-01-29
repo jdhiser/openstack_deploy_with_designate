@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 
 
@@ -7,16 +7,16 @@ init_vault()
 	# see https://opendev.org/openstack/charm-vault/src/branch/stable/1.8/src/README.md#post-deployment-tasks
 
 	# wait for vault to be ready.
-	while ! juju status|grep -e 'Vault needs to be initialized'  -e 'Unit is sealed' > /dev/null
-	do
-		echo waiting for vault to be ready.
-		sleep 5s
-	done
+#	while ! juju status|grep -e 'Vault needs to be initialized'  -e 'Unit is sealed' > /dev/null
+#	do
+#		echo waiting for vault to be ready.
+#		sleep 5s
+#	done
 
 	export VAULT_ADDR="http://$(juju status|grep vault/0|awk '{print $5}'):8200"
 	#jdh8d@shen-23:~/shen_openstack_deloy_antelope/juju_init$ vault operator init -key-shares=5 -key-threshold=3
 	init_output=$(vault operator init -key-shares=5 -key-threshold=3)
-	echo "$init_output"
+	echo "$init_output" 
 	key1=$(echo "$init_output"|grep "Key 1:"|awk '{print $4}')
 	key2=$(echo "$init_output"|grep "Key 2:"|awk '{print $4}')
 	key3=$(echo "$init_output"|grep "Key 3:"|awk '{print $4}')
@@ -26,7 +26,7 @@ init_vault()
 	echo "Key3=$key3"
 	echo "root_token=$root_token"
 
-	echo "$init_output" >> unseal_keys.txt
+	echo "$init_output" >> unseal_keys.$(date --iso-8601=seconds).txt
 
 	#Unseal Key 1: FqWLp6r/UP8IvvjIqNV/4u1Nt0/Jb4Qz/DOydXwTzBNC
 	#Unseal Key 2: i471YuplZ9ebAuwTzamG/smjLZSnV1CeRdoWaJU0Zr9X
@@ -111,7 +111,7 @@ init_vault()
 	#identity_policies    []
 	#policies             ["root"]
 	#jdh8d@shen-23:~/shen_openstack_deloy_antelope/juju_init$ juju run --wait=5m vault/leader authorize-charm token=s.pOMLN5YZqGpvDofeBsiVfxKD
-	juju_action=$(juju run --wait=5m vault/leader authorize-charm token=$juju_token)
+	juju_action=$(juju run-action --wait=5m vault/leader authorize-charm token=$juju_token)
 	echo "$juju_action"
 	sleep 30s
 
@@ -128,7 +128,7 @@ init_vault()
 	#    enqueued: 2023-06-18 01:49:34 +0000 UTC
 	#    started: 2023-06-18 01:49:35 +0000 UTC
 	#jdh8d@shen-23:~/shen_openstack_deloy_antelope/juju_init$ juju run --wait=5m vault/leader generate-root-ca
-	juju run --wait=5m vault/leader generate-root-ca
+	juju run-action --wait=5m vault/leader generate-root-ca
 	#unit-vault-0:
 	#  UnitId: vault/0
 	#  id: "4"
@@ -176,6 +176,15 @@ init_vault()
 main()
 {
 	init_vault
+
+	sleep 120s
+
+	source ~/openstack-bundles/stable/openstack-base/openrc
+
+        # install certificate as trusted.
+        sudo cp $OS_CACERT /usr/local/share/ca-certificates
+        sudo update-ca-certificates
+
 }
 
 main "$@"

@@ -5,9 +5,10 @@
 # wait for neutron to reconfigure and restart
 echo "Configuring neutron-api"
 juju ssh neutron-api/0 "sudo sed -i 's/dns_domain_ports/dns_domain_ports,subnet_dns_publish_fixed_ip/' /etc/neutron/plugins/ml2/ml2_conf.ini ; sudo service neutron-server restart"
-sleep 30
+echo waiting for neturon to restart
+sleep 60
 
-export designate_bind_ip=10.246.118.192
+export designate_bind_ip=10.246.118.228
 
 source ~/openstack-bundles/stable/openstack-base/openrc
 openstack zone create --email jdhiser@gmail.com shen.os.
@@ -22,8 +23,8 @@ dig shen44.maas @$designate_bind_ip
 
 
 echo "
-Done setting up zones for mtx1.os.
-If all went well, dig should show IP addresses for dns-test.mtx.os and mtx39.maas.
+Done setting up zones for shen.os.
+If all went well, dig should show IP addresses for dns-test.shen.os and shen25.maas.
 
 Recommend you change mtx1 settings to configure /etc/netplan/00-installer-config.yaml
 to use $designate_bind_ip as a name server.

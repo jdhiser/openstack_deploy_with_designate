@@ -31,7 +31,7 @@ bootstrap()
 
 
 	# start here.  bootstrap creates node 0.
-	juju bootstrap --bootstrap-series=jammy --constraints tags=juju maas-one maas-controller
+	juju bootstrap --credential="jdh8d" --bootstrap-series=jammy --constraints tags=controller maas-one maas-controller
 	# sleep 5m
 
 	# create and switch to a model for deployment.
@@ -43,13 +43,10 @@ bootstrap()
 deploy_services()
 {
 
-	# deploy ceph-osd  to machines 0,1,2
-	retry juju deploy -n 3 --channel quincy/stable --config ceph-osd.yaml --constraints tags=ceph ceph-osd
+	# deploy ceph-osd  to machines 0,1,2,4
+	retry juju deploy -n 4 --channel quincy/stable --config ceph-osd.yaml --constraints tags=ceph-osd ceph-osd
 
-	# add machine 3
-	retry juju add-machine
-
-	# keep nova compute off the ceph/monitor nodes. mtx nodes are weak sauce.
+	# keep nova compute off the ceph/monitor nodes. shen nodes are weak sauce.
 	retry juju deploy -n 10 --channel 2023.1/stable --config nova-compute.yaml nova-compute
 
 	# put mysql on 3 lightweight containers, sharing space with ceph
@@ -62,8 +59,6 @@ deploy_services()
 	juju relate vault-mysql-router:db-router mysql-innodb-cluster:db-router
 	juju relate vault-mysql-router:shared-db vault:shared-db
 	juju relate mysql-innodb-cluster:certificates vault:certificates
-
-
 
 	# neutron
 	retry juju deploy -n 3 --to lxd:0,lxd:1,lxd:2 --channel 23.03/stable ovn-central
@@ -86,8 +81,6 @@ deploy_services()
 	juju relate neutron-api-mysql-router:db-router mysql-innodb-cluster:db-router
 	juju relate neutron-api-mysql-router:shared-db neutron-api:shared-db
 
-
-
 	# keystone
 	retry juju deploy --to lxd:0 --channel 2023.1/stable keystone
 
@@ -99,8 +92,6 @@ deploy_services()
 	#Two additional relations can be added at this time:
 	juju relate keystone:identity-service neutron-api:identity-service
 	juju relate keystone:certificates vault:certificates
-
-
 
 	# rabbitmq
 	retry juju deploy --to lxd:2 --channel 3.9/stable rabbitmq-server
@@ -227,7 +218,8 @@ init_vault()
 	export VAULT_ADDR="http://$(juju status|grep vault/0|awk '{print $5}'):8200"
 	#jdh8d@shen-23:~/shen_openstack_deloy_antelope/juju_init$ vault operator init -key-shares=5 -key-threshold=3
 	init_output=$(vault operator init -key-shares=5 -key-threshold=3)
-	echo "$init_output"
+	echo "Unseal keys are:"
+	echo "$init_output" | tee deploy_unseal_keys.txt
 	key1=$(echo "$init_output"|grep "Key 1:"|awk '{print $4}')
 	key2=$(echo "$init_output"|grep "Key 2:"|awk '{print $4}')
 	key3=$(echo "$init_output"|grep "Key 3:"|awk '{print $4}')
@@ -236,6 +228,7 @@ init_vault()
 	echo "Key2=$key2"
 	echo "Key3=$key3"
 	echo "root_token=$root_token"
+
 
 	#Unseal Key 1: FqWLp6r/UP8IvvjIqNV/4u1Nt0/Jb4Qz/DOydXwTzBNC
 	#Unseal Key 2: i471YuplZ9ebAuwTzamG/smjLZSnV1CeRdoWaJU0Zr9X
@@ -319,7 +312,7 @@ init_vault()
 	#identity_policies    []
 	#policies             ["root"]
 	#jdh8d@shen-23:~/shen_openstack_deloy_antelope/juju_init$ juju run vault/leader authorize-charm token=s.pOMLN5YZqGpvDofeBsiVfxKD
-	juju_action=$(juju run vault/leader authorize-charm token=$juju_token)
+	juju_action=$(juju run-action vault/leader authorize-charm token=$juju_token)
 	echo "$juju_action"
 	sleep 30s
 
@@ -336,7 +329,7 @@ init_vault()
 	#    enqueued: 2023-06-18 01:49:34 +0000 UTC
 	#    started: 2023-06-18 01:49:35 +0000 UTC
 	#jdh8d@shen-23:~/shen_openstack_deloy_antelope/juju_init$ juju run vault/leader generate-root-ca
-	juju run vault/leader generate-root-ca
+	juju run-action vault/leader generate-root-ca
 	#unit-vault-0:
 	#  UnitId: vault/0
 	#  id: "4"
